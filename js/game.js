@@ -1,11 +1,11 @@
 // ── IMAGE + TRAILER CACHE ────────────────────────────────────────
-const imgCache     = {};
+const imgCache = {};
 const trailerCache = {};
 const FALLBACK = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="600"><rect fill="%23111"/><text x="50%25" y="50%25" fill="%23444" font-size="48" text-anchor="middle" dominant-baseline="middle">?</text></svg>';
 
 // ── YOUTUBE API KEY ROTATION ──────────────────────────────────────
-let YT_API_KEYS    = JSON.parse(localStorage.getItem('yt_api_keys') || '[]');
-let ytKeyIndex     = 0;
+let YT_API_KEYS = JSON.parse(localStorage.getItem('yt_api_keys') || '[]');
+let ytKeyIndex = 0;
 const exhaustedKeys = new Set(); // keys that hit quota today
 
 function getCurrentKey() {
@@ -36,7 +36,7 @@ if (YT_API_KEY && !YT_API_KEYS.includes(YT_API_KEY)) {
 // ── JIKAN REQUEST THROTTLE (max 1 req/600ms) ─────────────────────
 let jikanLastTime = 0;
 async function jikanFetch(url) {
-  const now  = Date.now();
+  const now = Date.now();
   const wait = Math.max(0, 600 - (now - jikanLastTime));
   if (wait > 0) await new Promise(r => setTimeout(r, wait));
   jikanLastTime = Date.now();
@@ -73,7 +73,7 @@ async function fetchImageAnime(item) {
         continue;
       }
       const data = await res.json();
-      const img  = data?.data?.[0]?.images?.jpg?.large_image_url;
+      const img = data?.data?.[0]?.images?.jpg?.large_image_url;
       if (img) { imgCache[item.title] = img; return; }
       break; // no result — stop retrying
     } catch {
@@ -97,9 +97,9 @@ async function fetchImageGame(item) {
 async function fetchImageSong(item) {
   // iTunes Search API — free, supports CORS
   const artist = item.jp || '';
-  const q      = encodeURIComponent(`${item.title} ${artist}`);
+  const q = encodeURIComponent(`${item.title} ${artist}`);
   try {
-    const res  = await fetch(`https://itunes.apple.com/search?term=${q}&media=music&limit=1`);
+    const res = await fetch(`https://itunes.apple.com/search?term=${q}&media=music&limit=1`);
     if (!res.ok) { imgCache[item.title] = FALLBACK; return; }
     const data = await res.json();
     const thumb = data?.results?.[0]?.artworkUrl100;
@@ -129,7 +129,7 @@ async function fetchYouTubeTrailer(anime) {
   const key = getCurrentKey();
   if (!key) { trailerCache[anime.title] = null; return null; }
   try {
-    const q   = encodeURIComponent(buildYTQuery(anime));
+    const q = encodeURIComponent(buildYTQuery(anime));
     const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${q}&type=video&maxResults=1&key=${key}`;
     const res = await fetch(url);
     if (res.status === 403) {
@@ -145,7 +145,7 @@ async function fetchYouTubeTrailer(anime) {
     }
     if (res.status === 400) { trailerCache[anime.title] = null; return null; }
     const data = await res.json();
-    const id   = data?.items?.[0]?.id?.videoId || null;
+    const id = data?.items?.[0]?.id?.videoId || null;
     trailerCache[anime.title] = id;
     return id;
   } catch {
@@ -168,9 +168,9 @@ const hoverTimers = {};
 
 function clearTrailer(side) {
   clearTimeout(hoverTimers[side]);
-  const wrap    = document.getElementById(`${side}-trailer`);
-  const badge   = document.getElementById(`${side}-trailer-badge`);
-  const noMsg   = document.getElementById(`${side}-no-trailer`);
+  const wrap = document.getElementById(`${side}-trailer`);
+  const badge = document.getElementById(`${side}-trailer-badge`);
+  const noMsg = document.getElementById(`${side}-no-trailer`);
   const spinner = document.getElementById(`${side}-trailer-loading`);
   wrap.innerHTML = '';
   wrap.classList.remove('ready');
@@ -181,25 +181,25 @@ function clearTrailer(side) {
 
 // ── YOUTUBE PLAYER API ───────────────────────────────────────────
 const ytPlayers = {};   // side → YT.Player instance
-let ytApiReady  = false;
-window.onYouTubeIframeAPIReady = function() { ytApiReady = true; };
+let ytApiReady = false;
+window.onYouTubeIframeAPIReady = function () { ytApiReady = true; };
 
 function loadTrailer(side, anime) {
-  const wrap    = document.getElementById(`${side}-trailer`);
-  const badge   = document.getElementById(`${side}-trailer-badge`);
-  const noMsg   = document.getElementById(`${side}-no-trailer`);
+  const wrap = document.getElementById(`${side}-trailer`);
+  const badge = document.getElementById(`${side}-trailer-badge`);
+  const noMsg = document.getElementById(`${side}-no-trailer`);
   const spinner = document.getElementById(`${side}-trailer-loading`);
 
   if (wrap.dataset.anime === anime.title && wrap.classList.contains('ready')) return;
 
   // destroy old player
-  if (ytPlayers[side]) { try { ytPlayers[side].destroy(); } catch {} delete ytPlayers[side]; }
+  if (ytPlayers[side]) { try { ytPlayers[side].destroy(); } catch { } delete ytPlayers[side]; }
   wrap.innerHTML = '';
   wrap.classList.remove('ready');
   badge.classList.remove('visible');
   noMsg.classList.remove('visible');
 
-  if (!YT_API_KEY) {
+  if (!getCurrentKey()) {
     noMsg.textContent = 'ใส่ YouTube API Key ก่อน';
     noMsg.classList.add('visible');
     return;
@@ -226,8 +226,8 @@ function loadTrailer(side, anime) {
 
   // Create a div for YT.Player to replace
   const divId = `yt-player-${side}`;
-  const div   = document.createElement('div');
-  div.id      = divId;
+  const div = document.createElement('div');
+  div.id = divId;
   wrap.appendChild(div);
   wrap.dataset.anime = anime.title;
 
@@ -283,17 +283,17 @@ document.addEventListener('keydown', e => {
     return panel && panel.matches(':hover');
   });
   const player = activeSide ? ytPlayers[activeSide]
-                             : (ytPlayers['left'] || ytPlayers['right']);
+    : (ytPlayers['left'] || ytPlayers['right']);
   if (!player || typeof player.getCurrentTime !== 'function') return;
 
   try {
     const current = player.getCurrentTime();
-    const seek    = e.key === 'ArrowLeft' ? -10 : 10;
+    const seek = e.key === 'ArrowLeft' ? -10 : 10;
     player.seekTo(Math.max(0, current + seek), true);
 
     // show seek toast
     showToast(e.key === 'ArrowLeft' ? '⏪ -10s' : '⏩ +10s');
-  } catch {}
+  } catch { }
 });
 
 function setupHover(side) {
@@ -331,9 +331,9 @@ function nextAnime(exclude1, exclude2) {
 function showWinner(anime) {
   recordWin(anime);
   recordChampion(anime);
-  document.getElementById('winner-img').src           = imgCache[anime.title] || FALLBACK;
+  document.getElementById('winner-img').src = imgCache[anime.title] || FALLBACK;
   document.getElementById('winner-title').textContent = anime.title;
-  document.getElementById('winner-jp').textContent    = anime.jp;
+  document.getElementById('winner-jp').textContent = anime.jp;
   document.getElementById('winner-genre').textContent = anime.genre;
   document.getElementById('winner-round').textContent = `ผ่านมาทั้งหมด ${round - 1} รอบ`;
   document.getElementById('winner-screen').classList.add('show');
@@ -342,7 +342,7 @@ function showWinner(anime) {
 function playAgain() {
   rejected.clear();
   round = 1;
-  wins  = {};
+  wins = {};
   // re-pick a fresh random subset
   activePool = shuffle([...ANIME]).slice(0, Math.min(poolSize, ANIME.length));
   document.getElementById('winner-screen').classList.remove('show');
@@ -355,9 +355,9 @@ function playAgain() {
   document.getElementById('last-pick-img').classList.remove('visible');
   document.getElementById('last-pick-name').classList.remove('visible');
 
-  leftAnime  = nextAnime(null, null);
+  leftAnime = nextAnime(null, null);
   rightAnime = nextAnime(leftAnime, null);
-  renderPanel('left',  leftAnime,  'anim-left');
+  renderPanel('left', leftAnime, 'anim-left');
   renderPanel('right', rightAnime, 'anim-right');
   updateUI();
 }
@@ -366,9 +366,9 @@ function playAgain() {
 async function init() {
   // Set header from data file constants
   const titleEl = document.getElementById('header-title');
-  const subEl   = document.getElementById('header-sub');
+  const subEl = document.getElementById('header-sub');
   if (titleEl) titleEl.textContent = typeof GAME_LABEL !== 'undefined' ? GAME_LABEL : 'BATTLE';
-  if (subEl)   subEl.textContent   = typeof GAME_SUB   !== 'undefined' ? GAME_SUB   : '';
+  if (subEl) subEl.textContent = typeof GAME_SUB !== 'undefined' ? GAME_SUB : '';
   document.title = typeof GAME_LABEL !== 'undefined' ? GAME_LABEL : 'Battle';
   // build active pool from random subset
   activePool = shuffle([...ANIME]).slice(0, Math.min(poolSize, ANIME.length));
@@ -376,14 +376,14 @@ async function init() {
   initApiKeyUI();
   initPoolSizeUI();
 
-  leftAnime  = nextAnime(null, null);
+  leftAnime = nextAnime(null, null);
   rightAnime = nextAnime(leftAnime, null);
 
   document.getElementById('loading').querySelector('p').textContent = 'FETCHING IMAGES...';
   await fetchImage(leftAnime);
   await fetchImage(rightAnime);
 
-  renderPanel('left',  leftAnime);
+  renderPanel('left', leftAnime);
   renderPanel('right', rightAnime);
   updateUI();
 
@@ -408,7 +408,7 @@ async function prefetchDashboardImages() {
 let gameStarted = false;
 
 // Click on panel background also triggers choose
-document.getElementById('left').addEventListener('click',  (e) => { if (!e.target.classList.contains('choose-btn')) choose('left');  });
+document.getElementById('left').addEventListener('click', (e) => { if (!e.target.classList.contains('choose-btn')) choose('left'); });
 document.getElementById('right').addEventListener('click', (e) => { if (!e.target.classList.contains('choose-btn')) choose('right'); });
 
 // Trailer hover
