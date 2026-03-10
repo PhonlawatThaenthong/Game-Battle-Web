@@ -4,7 +4,23 @@ const trailerCache = {};
 const FALLBACK = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="600"><rect fill="%23111"/><text x="50%25" y="50%25" fill="%23444" font-size="48" text-anchor="middle" dominant-baseline="middle">?</text></svg>';
 
 // ── YOUTUBE API KEY ROTATION ──────────────────────────────────────
-let YT_API_KEYS = JSON.parse(localStorage.getItem('yt_api_keys') || '[]');
+const DEFAULT_YT_KEYS = [
+  'AIzaSyBEMtT5q03bKqtYGnAyRI3txjiyjIKwytc',
+  'AIzaSyCaG5qR0i_TaMkk8PJ7IqRoCx9jZa7N-oE',
+  'AIzaSyAD7PL9bwTMlCWLr2NFmTNb0yZ2pyfA96U',
+  'AIzaSyCQOl9e2dA_zg29s7KRzOokHGCb_4dqN8o',
+  'AIzaSyAzfL_skp4uQUmUWGx4stbPDjreLGGbn10',
+  'AIzaSyDHoAIP2lhB7EZJ-Z_DrC9G15pmROg5yl4',
+  'AIzaSyC_HfD4yLb6qvP7pPLtHaE9JwATAf1qfeE',
+  'AIzaSyC_0VoHRiUwtFrfuAib7OO3h8AAL4HHalk',
+];
+
+let YT_API_KEYS = JSON.parse(localStorage.getItem('yt_api_keys') || 'null');
+// ถ้ายังไม่มี key ใน localStorage ให้ใช้ default และบันทึกไว้เลย
+if (!YT_API_KEYS || YT_API_KEYS.length === 0) {
+  YT_API_KEYS = [...DEFAULT_YT_KEYS];
+  localStorage.setItem('yt_api_keys', JSON.stringify(YT_API_KEYS));
+}
 let ytKeyIndex = 0;
 const exhaustedKeys = new Set(); // keys that hit quota today
 
