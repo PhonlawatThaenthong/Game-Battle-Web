@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BATTLE HUB</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #0a0a0f;
+      --card:   #12121a;
+      --gold:   #ffd700;
+      --red:    #ff2d55;
+      --cyan:   #00e5ff;
+      --green:  #4cff91;
+      --purple: #bf5fff;
+    }
+
+    body {
+      background: var(--bg);
+      color: #fff;
+      font-family: 'Noto Sans JP', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ── BACKGROUND GRID ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,215,0,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,215,0,.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+
+    /* ── GLOW ORBS ── */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      opacity: .18;
+      animation: drift 12s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 500px; height: 500px; background: var(--red);    top: -150px; left: -150px; animation-delay: 0s; }
+    .orb-2 { width: 400px; height: 400px; background: var(--cyan);   bottom: -100px; right: -100px; animation-delay: -4s; }
+    .orb-3 { width: 300px; height: 300px; background: var(--purple); top: 40%; left: 40%; animation-delay: -8s; opacity: .1; }
+
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(30px, 20px) scale(1.05); }
+    }
+
+    /* ── HEADER ── */
+    .hub-header {
+      text-align: center;
+      margin-bottom: 56px;
+      animation: fadeDown .8s ease both;
+    }
+
+    .hub-eyebrow {
+      font-size: .65rem;
+      letter-spacing: .3em;
+      color: var(--gold);
+      opacity: .7;
+      margin-bottom: 10px;
+    }
+
+    .hub-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4rem, 10vw, 7rem);
+      letter-spacing: .08em;
+      line-height: 1;
+      background: linear-gradient(135deg, #fff 30%, var(--gold) 70%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hub-subtitle {
+      font-size: .78rem;
+      opacity: .35;
+      letter-spacing: .15em;
+      margin-top: 8px;
+    }
+
+    /* ── CARD GRID ── */
+    .hub-grid {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 0 24px;
+    }
+
+    /* ── BATTLE CARD ── */
+    .battle-card {
+      position: relative;
+      width: 240px;
+      background: var(--card);
+      border-radius: 20px;
+      padding: 32px 24px 28px;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,.07);
+      overflow: hidden;
+      transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+      animation: fadeUp .7s ease both;
+      text-decoration: none;
+      display: block;
+    }
+
+    .battle-card:nth-child(1) { animation-delay: .1s; }
+    .battle-card:nth-child(2) { animation-delay: .2s; }
+    .battle-card:nth-child(3) { animation-delay: .3s; }
+    .battle-card:nth-child(4) { animation-delay: .4s; }
+
+    .battle-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity .3s ease;
+    }
+
+    .battle-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      border-color: var(--accent);
+      box-shadow: 0 20px 60px rgba(0,0,0,.5), 0 0 30px var(--glow);
+    }
+    .battle-card:hover::before { opacity: .06; }
+
+    /* card color themes */
+    .card-anime  { --accent: var(--red);    --glow: rgba(255,45,85,.3); }
+    .card-game   { --accent: var(--cyan);   --glow: rgba(0,229,255,.3); }
+    .card-song   { --accent: var(--purple); --glow: rgba(191,95,255,.3); }
+    .card-coming { --accent: var(--gold);   --glow: rgba(255,215,0,.2); }
+
+    /* top bar accent */
+    .card-bar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--accent);
+      border-radius: 20px 20px 0 0;
+      opacity: .7;
+    }
+
+    .card-icon {
+      font-size: 2.8rem;
+      margin-bottom: 18px;
+      display: block;
+      filter: drop-shadow(0 0 12px var(--accent));
+      transition: transform .25s ease;
+    }
+    .battle-card:hover .card-icon { transform: scale(1.15) rotate(-5deg); }
+
+    .card-tag {
+      font-size: .55rem;
+      letter-spacing: .2em;
+      color: var(--accent);
+      opacity: .8;
+      margin-bottom: 6px;
+    }
+
+    .card-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.9rem;
+      letter-spacing: .06em;
+      line-height: 1.1;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+
+    .card-desc {
+      font-size: .72rem;
+      opacity: .45;
+      line-height: 1.6;
+    }
+
+    .card-cta {
+      margin-top: 22px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .72rem;
+      letter-spacing: .12em;
+      color: var(--accent);
+      opacity: .7;
+      transition: opacity .2s, gap .2s;
+    }
+    .battle-card:hover .card-cta { opacity: 1; gap: 10px; }
+
+    /* coming soon overlay */
+    .card-coming-badge {
+      position: absolute;
+      top: 14px; right: 14px;
+      background: rgba(255,215,0,.12);
+      border: 1px solid rgba(255,215,0,.25);
+      color: var(--gold);
+      font-size: .55rem;
+      letter-spacing: .15em;
+      padding: 3px 8px;
+      border-radius: 20px;
+    }
+    .card-coming { opacity: .55; pointer-events: none; }
+
+    /* ── FOOTER ── */
+    .hub-footer {
+      margin-top: 56px;
+      font-size: .6rem;
+      letter-spacing: .2em;
+      opacity: .2;
+      animation: fadeUp 1s ease .5s both;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <header class="hub-header">
+    <div class="hub-eyebrow">SELECT YOUR BATTLE</div>
+    <div class="hub-title">BATTLE HUB</div>
+    <div class="hub-subtitle">เลือกประเภทการแข่งขัน</div>
+  </header>
+
+  <div class="hub-grid">
+
+    <!-- ANIME BATTLE -->
+    <a class="battle-card card-anime" href="index.html">
+      <div class="card-bar"></div>
+      <span class="card-icon">⚔️</span>
+      <div class="card-tag">ANIME · BATTLE</div>
+      <div class="card-title">ANIME<br>BATTLE</div>
+      <div class="card-desc">เลือก anime ที่ชอบกว่า ไปเรื่อยๆ จนกว่าจะได้แชมป์</div>
+      <div class="card-cta">เล่นเลย →</div>
+    </a>
+
+    <!-- GAME BATTLE -->
+    <a class="battle-card card-game" href="game-battle.html">
+      <div class="card-bar"></div>
+      <span class="card-icon">🎮</span>
+      <div class="card-tag">GAME · BATTLE</div>
+      <div class="card-title">GAME<br>BATTLE</div>
+      <div class="card-desc">แข่งขันเลือก video game ที่ชอบกว่า</div>
+      <div class="card-cta">เล่นเลย →</div>
+    </a>
+
+    <!-- SONG BATTLE -->
+    <a class="battle-card card-song" href="song-battle.html">
+      <div class="card-bar"></div>
+      <span class="card-icon">🎵</span>
+      <div class="card-tag">SONG · BATTLE</div>
+      <div class="card-title">SONG<br>BATTLE</div>
+      <div class="card-desc">โหวตเพลงโปรดแบบ head-to-head</div>
+      <div class="card-cta">เล่นเลย →</div>
+    </a>
+
+  </div>
+
+  <footer class="hub-footer">BATTLE HUB · GROUP 3</footer>
+
+</body>
+</html>

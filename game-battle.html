@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>アニメバトル — Anime Battle</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+<style>
+.hub-back-btn {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 200;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.2);
+  color: rgba(255,255,255,.75);
+  border-radius: 10px;
+  padding: 9px 18px;
+  font-size: .85rem;
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: .14em;
+  text-decoration: none;
+  transition: background .2s, color .2s, border-color .2s, transform .15s;
+  white-space: nowrap;
+}
+.hub-back-btn:hover {
+  background: rgba(255,255,255,.18);
+  border-color: rgba(255,255,255,.5);
+  color: #fff;
+  transform: translateY(-50%) scale(1.06);
+}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="loader-ring"></div>
+  <p>LOADING ANIME...</p>
+</div>
+
+<div id="app">
+
+<header>
+  <a href="index.html" class="hub-back-btn">⟵ HUB</a>
+  <h1 id="header-title">BATTLE</h1>
+  <p id="header-sub">กำลังโหลด...</p>
+  <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;">
+    <div id="round-counter">ROUND 1</div>
+    <span style="opacity:.35;font-size:.75rem;">·</span>
+    <div id="remaining-counter">เหลือ 30 เรื่อง</div>
+    <button id="dashboard-btn" onclick="openDashboard()" title="ประวัติการชนะ">🏆</button>
+    <button id="settings-btn"  onclick="openSettings()"  title="ตั้งค่า">⚙️</button>
+  </div>
+</header>
+
+<div id="arena">
+  <!-- LEFT PANEL -->
+  <div class="panel" id="left">
+    <div class="panel-bg" id="left-bg"></div>
+    <div class="trailer-wrap" id="left-trailer"></div>
+    <div class="overlay"></div>
+    <div class="vignette"></div>
+    <div class="side-label">LEFT</div>
+    <div class="trailer-loading" id="left-trailer-loading"></div>
+    <div class="trailer-badge"   id="left-trailer-badge">▶ TRAILER</div>
+    <div class="no-trailer-msg"  id="left-no-trailer"></div>
+    <div class="anime-info">
+      <div class="anime-genre" id="left-genre"></div>
+      <div class="anime-title" id="left-title"></div>
+      <div class="anime-title-jp" id="left-title-jp"></div>
+      <button class="choose-btn" onclick="choose('left')">▶ เลือกฝั่งนี้</button>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="vs">
+    <div class="vs-line"></div>
+    <div id="vs-text">VS</div>
+    <div id="last-pick">
+      <div id="last-pick-label">LAST PICK</div>
+      <img id="last-pick-img" src="" alt="last pick"/>
+      <div id="last-pick-name"></div>
+    </div>
+    <div class="vs-line"></div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel" id="right">
+    <div class="panel-bg" id="right-bg"></div>
+    <div class="trailer-wrap" id="right-trailer"></div>
+    <div class="overlay"></div>
+    <div class="vignette"></div>
+    <div class="side-label">RIGHT</div>
+    <div class="trailer-loading" id="right-trailer-loading"></div>
+    <div class="trailer-badge"   id="right-trailer-badge">▶ TRAILER</div>
+    <div class="no-trailer-msg"  id="right-no-trailer"></div>
+    <div class="anime-info">
+      <div class="anime-genre" id="right-genre"></div>
+      <div class="anime-title" id="right-title"></div>
+      <div class="anime-title-jp" id="right-title-jp"></div>
+      <button class="choose-btn" onclick="choose('right')">▶ เลือกฝั่งนี้</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /#app -->
+
+<!-- WINNER SCREEN -->
+<div id="winner-screen">
+  <div class="winner-crown">👑</div>
+  <div class="winner-label">ULTIMATE WINNER</div>
+  <img class="winner-img" id="winner-img" src="" alt="winner"/>
+  <div class="winner-title" id="winner-title"></div>
+  <div class="winner-jp"    id="winner-jp"></div>
+  <div class="winner-genre" id="winner-genre"></div>
+  <div class="winner-round" id="winner-round"></div>
+  <button class="play-again-btn" onclick="playAgain()">▶ เล่นใหม่อีกครั้ง</button>
+</div>
+
+<div id="toast"></div>
+
+<!-- SETTINGS MODAL -->
+<div id="settings-page" class="modal-backdrop">
+  <div class="settings-card">
+    <div class="modal-header">
+      <h2>⚙️ ตั้งค่า</h2>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="settings-body">
+
+      <!-- POOL SIZE (everyone) -->
+      <div class="settings-field">
+        <label>🎲 จำนวน Anime ต่อรอบ</label>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:4px;">
+          <input type="range" id="pool-size-slider" min="4" max="120" step="2" value="30"
+            style="flex:1;accent-color:var(--gold);"
+            oninput="document.getElementById('pool-size-val').textContent=this.value"/>
+          <span id="pool-size-val" style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--gold);min-width:28px;text-align:right;">30</span>
+          <span style="font-size:.65rem;opacity:.35;">เรื่อง</span>
+        </div>
+        <div class="settings-hint">เลือกจาก anime pool แบบสุ่มทุกครั้งที่เริ่มเกมใหม่</div>
+      </div>
+        <label>🔊 ระดับเสียง Trailer</label>
+        <div class="volume-row">
+          <span class="volume-icon" id="vol-icon">🔊</span>
+          <input type="range" class="vol-slider" id="vol-slider"
+                 min="0" max="100" value="80"
+                 oninput="onVolumeSlide(this.value)"
+                 onchange="saveVolume(this.value)"/>
+          <span class="vol-value" id="vol-value">80</span>
+        </div>
+      </div>
+
+      <!-- ADMIN-ONLY SECTION with password gate -->
+      <div id="admin-settings-section" style="border-top:1px solid rgba(255,255,255,.07);padding-top:14px;">
+
+        <!-- LOCKED STATE -->
+        <div id="admin-gate-locked" class="admin-gate">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:1.1rem;">🔒</span>
+            <span style="font-size:.72rem;opacity:.5;letter-spacing:.1em;">ต้องใส่รหัสเพื่อเข้าถึง API Keys</span>
+          </div>
+          <div class="admin-gate-row">
+            <input type="password" id="admin-pw-input" placeholder="รหัสผ่าน Admin"
+              onkeydown="if(event.key==='Enter') checkAdminPw()"/>
+            <button class="admin-gate-btn" onclick="checkAdminPw()">🔓 ปลดล็อก</button>
+          </div>
+          <div class="admin-gate-err" id="admin-pw-err">รหัสผ่านไม่ถูกต้อง</div>
+        </div>
+
+        <!-- UNLOCKED STATE -->
+        <div id="admin-gate-unlocked" style="display:none;display:flex;flex-direction:column;gap:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:.65rem;letter-spacing:.14em;background:rgba(255,215,0,.15);color:var(--gold);border:1px solid rgba(255,215,0,.25);padding:2px 8px;border-radius:10px;">🔓 ADMIN</span>
+              <div class="key-dot" id="key-dot"></div>
+              <span id="key-indicator-text" style="opacity:.4;font-size:.68rem;">ยังไม่ได้ตั้งค่า API Key</span>
+            </div>
+            <button onclick="lockAdminSettings()" style="background:none;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);border-radius:6px;padding:3px 10px;font-size:.65rem;cursor:pointer;">🔒 ล็อก</button>
+          </div>
+
+          <div class="settings-field">
+            <label>YouTube Data API v3 Keys</label>
+            <div id="yt-keys-container" style="display:flex;flex-direction:column;gap:7px;margin-bottom:8px;"></div>
+            <button onclick="addNewKey()" style="width:100%;background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.2);color:rgba(255,255,255,.5);border-radius:6px;padding:7px;cursor:pointer;font-size:.75rem;font-family:inherit;">+ เพิ่ม API Key</button>
+            <div class="settings-hint" style="margin-top:6px;">
+              <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> → เปิดใช้งาน YouTube Data API v3 · แต่ละ key = 100 req/วัน
+            </div>
+          </div>
+          <div class="settings-status" id="settings-status"></div>
+          <div style="display:flex;gap:8px;">
+            <button class="settings-save-btn" onclick="saveApiKey()" style="flex:1;">💾 บันทึก</button>
+            <button onclick="openGameLog()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:.78rem;font-family:inherit;white-space:nowrap;">📋 Show Log</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD MODAL -->
+<div id="dashboard-page" class="modal-backdrop">
+  <div class="dash-card">
+    <div class="modal-header">
+      <h2>🏆 DASHBOARD</h2>
+      <div class="dash-header-right">
+        <button class="dash-clear-btn" onclick="clearHistory()">🗑 ล้างประวัติ</button>
+        <button class="modal-close" onclick="closeDashboard()">✕</button>
+      </div>
+    </div>
+    <div class="dash-stats-row">
+      <div class="dash-stat"><div class="dash-stat-val" id="stat-total-games">0</div><div class="dash-stat-label">เกมทั้งหมด</div></div>
+      <div class="dash-stat"><div class="dash-stat-val" id="stat-total-rounds">0</div><div class="dash-stat-label">รอบรวม</div></div>
+      <div class="dash-stat"><div class="dash-stat-val" id="stat-unique-winners">0</div><div class="dash-stat-label">Anime ที่เคยชนะ</div></div>
+      <div class="dash-stat"><div class="dash-stat-val" id="stat-top-anime">—</div><div class="dash-stat-label">แชมป์ตลอดกาล</div></div>
+    </div>
+    <div class="dash-tabs">
+      <button class="dash-tab active" id="tab-wins"     onclick="switchTab('wins')">🏅 ชนะมากสุด</button>
+      <button class="dash-tab"        id="tab-recent"   onclick="switchTab('recent')">🕐 ล่าสุด</button>
+      <button class="dash-tab"        id="tab-champion" onclick="switchTab('champion')">👑 แชมป์</button>
+    </div>
+    <div class="dash-body"><div id="dash-content"></div></div>
+  </div>
+</div>
+
+
+<!-- LOG MODAL -->
+<div id="log-page" class="modal-backdrop">
+  <div style="background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:16px;width:min(620px,95vw);max-height:80vh;display:flex;flex-direction:column;overflow:hidden;">
+    <div class="modal-header">
+      <span style="font-size:.65rem;letter-spacing:.14em;opacity:.5;">📋 GAME LOG</span>
+      <button class="modal-close" onclick="closeGameLog()">✕</button>
+    </div>
+    <div style="display:flex;gap:8px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.06);">
+      <button onclick="filterLog('all')"  id="log-filter-all"  class="log-filter-btn active">ทั้งหมด</button>
+      <button onclick="filterLog('win')"  id="log-filter-win"  class="log-filter-btn">🏆 Win</button>
+      <button onclick="filterLog('lose')" id="log-filter-lose" class="log-filter-btn">💀 Lose</button>
+      <button onclick="clearGameLog()" style="margin-left:auto;background:rgba(255,45,85,.1);border:1px solid rgba(255,45,85,.25);color:#ff2d55;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:.68rem;font-family:inherit;">🗑 ล้าง Log</button>
+    </div>
+    <div id="log-body" style="overflow-y:auto;flex:1;padding:10px 16px;display:flex;flex-direction:column;gap:4px;font-family:monospace;font-size:.72rem;"></div>
+  </div>
+</div>
+
+<script src="js/game-data.js"></script>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script src="js/auth.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
