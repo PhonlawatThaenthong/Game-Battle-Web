@@ -380,8 +380,9 @@ function playAgain() {
 
 // ── INIT ─────────────────────────────────────────────────────────
 async function init() {
-  // Load leaderboard data from server
+  // Load leaderboard data from server + start background sync
   await loadHistory();
+  setInterval(loadHistory, 10000);
 
   // Set header from data file constants
   const titleEl = document.getElementById('header-title');

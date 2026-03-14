@@ -48,12 +48,34 @@ function clearHistory() {
     .catch(err => console.error('clearHistory API error:', err));
 }
 
+// ── SYNC (Polling) ────────────────────────────────────────────────
+let syncInterval = null;
+
+function startSync() {
+  stopSync();
+  syncInterval = setInterval(async () => {
+    await loadHistory();
+    if (document.getElementById('dashboard-page').classList.contains('open')) {
+      renderDashboard();
+    }
+  }, 5000);
+}
+
+function stopSync() {
+  if (syncInterval) { clearInterval(syncInterval); syncInterval = null; }
+}
+
 // ── DASHBOARD ─────────────────────────────────────────────────────
 let currentTab = 'wins';
 
 function openDashboard() {
   document.getElementById('dashboard-page').classList.add('open');
-  renderDashboard();
+  // ดึงข้อมูลล่าสุดจาก server ก่อน render
+  (async () => {
+    await loadHistory();
+    renderDashboard();
+  })();
+  startSync();
 
   const needed = Object.keys(winHistory).filter(t => !imgCache[t] || imgCache[t] === FALLBACK);
   if (needed.length === 0) return;
@@ -66,7 +88,7 @@ function openDashboard() {
     }
   })();
 }
-function closeDashboard() { document.getElementById('dashboard-page').classList.remove('open'); }
+function closeDashboard() { stopSync(); document.getElementById('dashboard-page').classList.remove('open'); }
 document.addEventListener('click', e => { if (e.target.id === 'dashboard-page') closeDashboard(); });
 
 function switchTab(tab) {
