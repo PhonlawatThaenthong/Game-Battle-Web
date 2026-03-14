@@ -135,7 +135,7 @@ app.use('/data', (req, res) => res.status(403).end());
 app.use('/.claude', (req, res) => res.status(403).end());
 
 // ── Static Files ─────────────────────────────────────────────────
-app.use(express.static(__dirname));
+app.use(express.static(__dirname, { extensions: ['html'] }));
 
 // ── Start ────────────────────────────────────────────────────────
 ensureDataFile();
