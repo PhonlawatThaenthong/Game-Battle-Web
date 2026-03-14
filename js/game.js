@@ -380,6 +380,9 @@ function playAgain() {
 
 // ── INIT ─────────────────────────────────────────────────────────
 async function init() {
+  // Load leaderboard data from server
+  await loadHistory();
+
   // Set header from data file constants
   const titleEl = document.getElementById('header-title');
   const subEl = document.getElementById('header-sub');

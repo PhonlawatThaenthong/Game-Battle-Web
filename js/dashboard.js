@@ -1,29 +1,51 @@
-// ── HISTORY (localStorage) ────────────────────────────────────────
-let winHistory   = JSON.parse(localStorage.getItem(`${GAME_ID}_history`) || '{}');
-let historyMeta  = JSON.parse(localStorage.getItem(`${GAME_ID}_meta`)    || '{"totalGames":0,"totalRounds":0}');
+// ── HISTORY (Server API) ──────────────────────────────────────────
+let winHistory  = {};
+let historyMeta = { totalGames: 0, totalRounds: 0 };
+
+async function loadHistory() {
+  try {
+    const res = await fetch(`/api/leaderboard/${GAME_ID}`);
+    const data = await res.json();
+    winHistory  = data.history || {};
+    historyMeta = data.meta || { totalGames: 0, totalRounds: 0 };
+  } catch (err) {
+    console.error('Failed to load leaderboard:', err);
+  }
+}
 
 function recordWin(anime) {
-  if (!winHistory[anime.title]) winHistory[anime.title] = { wins:0, championships:0, lastWon:null, genre:anime.genre, jp:anime.jp };
+  if (!winHistory[anime.title]) winHistory[anime.title] = { wins: 0, championships: 0, lastWon: null, genre: anime.genre, jp: anime.jp };
   winHistory[anime.title].wins++;
   winHistory[anime.title].lastWon = Date.now();
-  saveHistory();
+
+  fetch(`/api/leaderboard/${GAME_ID}/win`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title: anime.title, genre: anime.genre, jp: anime.jp })
+  }).catch(err => console.error('recordWin API error:', err));
 }
+
 function recordChampion(anime) {
-  if (!winHistory[anime.title]) winHistory[anime.title] = { wins:0, championships:0, lastWon:null, genre:anime.genre, jp:anime.jp };
-  winHistory[anime.title].championships = (winHistory[anime.title].championships||0) + 1;
+  if (!winHistory[anime.title]) winHistory[anime.title] = { wins: 0, championships: 0, lastWon: null, genre: anime.genre, jp: anime.jp };
+  winHistory[anime.title].championships = (winHistory[anime.title].championships || 0) + 1;
   winHistory[anime.title].lastWon = Date.now();
   historyMeta.totalGames++;
   historyMeta.totalRounds += round - 1;
-  saveHistory();
+
+  fetch(`/api/leaderboard/${GAME_ID}/champion`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title: anime.title, genre: anime.genre, jp: anime.jp, rounds: round - 1 })
+  }).catch(err => console.error('recordChampion API error:', err));
 }
-function saveHistory() {
-  localStorage.setItem(`${GAME_ID}_history`, JSON.stringify(winHistory));
-  localStorage.setItem(`${GAME_ID}_meta`,    JSON.stringify(historyMeta));
-}
+
 function clearHistory() {
   if (!confirm('ล้างประวัติทั้งหมด?')) return;
-  winHistory = {}; historyMeta = { totalGames:0, totalRounds:0 };
-  saveHistory(); renderDashboard();
+  winHistory = {}; historyMeta = { totalGames: 0, totalRounds: 0 };
+  renderDashboard();
+
+  fetch(`/api/leaderboard/${GAME_ID}/clear`, { method: 'POST' })
+    .catch(err => console.error('clearHistory API error:', err));
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────
