@@ -5,14 +5,8 @@ const FALLBACK = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" wid
 
 // ── YOUTUBE API KEY ROTATION ──────────────────────────────────────
 const DEFAULT_YT_KEYS = [
-  'AIzaSyBEMtT5q03bKqtYGnAyRI3txjiyjIKwytc',
-  'AIzaSyCaG5qR0i_TaMkk8PJ7IqRoCx9jZa7N-oE',
-  'AIzaSyAD7PL9bwTMlCWLr2NFmTNb0yZ2pyfA96U',
-  'AIzaSyCQOl9e2dA_zg29s7KRzOokHGCb_4dqN8o',
-  'AIzaSyAzfL_skp4uQUmUWGx4stbPDjreLGGbn10',
-  'AIzaSyDHoAIP2lhB7EZJ-Z_DrC9G15pmROg5yl4',
-  'AIzaSyC_HfD4yLb6qvP7pPLtHaE9JwATAf1qfeE',
-  'AIzaSyC_0VoHRiUwtFrfuAib7OO3h8AAL4HHalk',
+  'AIzaSyCjwlSTgsaXpLHFEQry4zNoL0epj8VJ7Ds',
+
 ];
 
 let YT_API_KEYS = JSON.parse(localStorage.getItem('yt_api_keys') || 'null');
